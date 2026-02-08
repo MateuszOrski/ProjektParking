@@ -298,6 +298,26 @@ app.get('/api/analyze-random', async (req, res) => {
     }
 });
 
+
+function calculateParkingCost(hours) {
+    let cost = 0;
+    const h = parseInt(hours) || 0;
+
+    for (let i = 1; i <= h; i++) {
+        if (i === 1) cost += 5;
+        else if (i === 2) cost += 10;
+        else if (i === 3) cost += 15;
+        else cost += 20;
+    }
+    return cost;
+}
+
+app.get('/api/calculate-price/:hours', (req, res) => {
+    const hours = req.params.hours;
+    const price = calculateParkingCost(hours);
+    res.json({ hours, price, currency: 'PLN' });
+});
+
 app.listen(3000, () => {
     console.log('Serwer Parkometru działa na porcie 3000');
 });

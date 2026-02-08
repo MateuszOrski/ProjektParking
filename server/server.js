@@ -169,6 +169,45 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
+app.post('/login', async (req, res) => {
+    const { login, password } = req.body;
+
+    if (!login || !password) {
+        return res.status(400).json({ success: false, message: 'Brak loginu lub hasła' });
+    }
+
+    try {
+        const sql = 'SELECT * FROM auth_db.users WHERE login = ?';
+        const [users] = await promiseDb.query(sql, [login]);
+
+        if (users.length === 0) {
+            return res.status(401).json({ success: false, message: 'Nieprawidłowy login lub hasło' });
+        }
+
+        const user = users[0];
+
+        if (password === user.password) {
+            res.json({
+                success: true,
+                message: 'Zalogowano pomyślnie',
+                user: {
+                    id: user.id,
+                    login: user.login,
+                    role: user.role, 
+                    firstName: user.first_name,
+                    lastName: user.last_name
+                }
+            });
+        } else {
+            res.status(401).json({ success: false, message: 'Nieprawidłowy login lub hasło' });
+        }
+
+    } catch (err) {
+        console.error('Błąd logowania:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera podczas logowania' });
+    }
+});
+
 app.listen(3000, () => {
     console.log('🚀 Serwer Parkometru działa na porcie 3000');
 });

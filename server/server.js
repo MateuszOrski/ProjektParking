@@ -2,6 +2,11 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+const FormData = require('form-data');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -242,6 +247,57 @@ app.get('/api/session/:id', async (req, res) => {
     }
 });
 
+app.get('/api/analyze-random', async (req, res) => {
+    try {
+        const imagesDir = path.join(__dirname, 'cars_images');
+        
+        if (!fs.existsSync(imagesDir)) {
+            return res.status(500).json({ message: 'Brak folderu cars_images' });
+        }
+        
+        const files = fs.readdirSync(imagesDir).filter(file => file.endsWith('.png') || file.endsWith('.jpg'));
+        
+        if (files.length === 0) {
+            return res.status(404).json({ message: 'Brak zdjęć w folderze' });
+        }
+
+        const randomFile = files[Math.floor(Math.random() * files.length)];
+        const filePath = path.join(imagesDir, randomFile);
+
+        console.log(`Wybrano losowo plik: ${randomFile}`);
+
+        const form = new FormData();
+        form.append('file', fs.createReadStream(filePath));
+
+        const lprUrl = 'http://lpr:8000/predict'; 
+
+        const lprResponse = await axios.post(lprUrl, form, {
+            headers: {
+                ...form.getHeaders()
+            }
+        });
+
+        const imageBitmap = fs.readFileSync(filePath);
+        const imageBase64 = imageBitmap.toString('base64');
+        const mimeType = randomFile.endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+        res.json({
+            success: true,
+            filename: randomFile,
+            analysis: lprResponse.data, 
+            image: `data:${mimeType};base64,${imageBase64}` 
+        });
+
+    } catch (err) {
+        console.error('Błąd analizy:', err.message);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Błąd połączenia z serwerem rozpoznawania tablic',
+            error: err.message
+        });
+    }
+});
+
 app.listen(3000, () => {
-    console.log('🚀 Serwer Parkometru działa na porcie 3000');
+    console.log('Serwer Parkometru działa na porcie 3000');
 });

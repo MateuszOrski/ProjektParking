@@ -12,12 +12,18 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s     
       timeout: 5s      
       retries: 10      
+
+  lpr:
+    build: ../LicensePlateRecognitionContainer  
+    container_name: parking_lpr
+    restart: always
+    ports:
+      - "8000:8000"
 
   app:
     build: .
@@ -29,10 +35,13 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_PASSWORD=rootpassword
-    
     depends_on:
       db:
         condition: service_healthy
+      lpr:
+        condition: service_started
+    volumes:
+       - ./cars_images:/usr/src/app/cars_images 
 
 volumes:
   db_data:

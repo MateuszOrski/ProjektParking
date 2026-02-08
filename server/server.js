@@ -208,6 +208,40 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.get('/api/session/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const sql = `
+            SELECT 
+                ps.*, 
+                s.spot_number, 
+                s.floor 
+            FROM parking_sessions ps
+            LEFT JOIN spots s ON ps.spot_id = s.id
+            WHERE ps.id = ?
+        `;
+
+        const [results] = await promiseDb.query(sql, [id]);
+
+        if (results.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Nie znaleziono parkowania o podanym ID' 
+            });
+        }
+
+        res.json({
+            success: true,
+            session: results[0]
+        });
+
+    } catch (err) {
+        console.error('Błąd pobierania sesji:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
+});
+
 app.listen(3000, () => {
     console.log('🚀 Serwer Parkometru działa na porcie 3000');
 });

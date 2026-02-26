@@ -1,0 +1,30 @@
+.menu-element {
+  display: flex;
+  align-items: center;      /* wyśrodkowanie w pionie */
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  color: #333333;
+  font-size: 14px;
+  background-color: transparent;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* ikona po lewej */
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* hover – żółte tło jak na screenie */
+.menu-element:hover {
+  background-color: #ffe36b; /* żółty */
+}
+
+/* opcjonalnie pierwsze (aktywne) na stałe żółte */
+.menu-element.active {
+  background-color: #ffe36b;
+  font-weight: 600;
+}

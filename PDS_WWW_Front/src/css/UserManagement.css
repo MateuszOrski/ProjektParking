@@ -1,0 +1,416 @@
+.user-management-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.user-management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.search-section {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    color: black;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.stats {
+    display: flex;
+    gap: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    white-space: nowrap;
+}
+
+.refresh-button {
+    padding: 10px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.refresh-button:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
+
+.refresh-button:active {
+    transform: scale(0.95);
+}
+
+.users-list {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: #999;
+    font-size: 16px;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.users-table thead {
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.users-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.users-table tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s;
+}
+
+.users-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.users-table td {
+    padding: 15px;
+    color: #555;
+    font-size: 14px;
+}
+
+.id-cell {
+    font-weight: 600;
+    color: #333;
+    width: 50px;
+}
+
+.login-cell {
+    font-weight: 500;
+    color: #222;
+}
+
+.name-cell {
+    color: #666;
+}
+
+.role-cell {
+    width: 100px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.role-admin {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.role-operator {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.role-user {
+    background-color: #2196F3;
+    color: white;
+}
+
+.balance-cell {
+    font-weight: 600;
+    color: #4CAF50;
+    width: 120px;
+}
+
+.balance-value {
+    font-size: 15px;
+}
+
+.charge-input-cell {
+    width: 130px;
+}
+
+.charge-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    color: black;
+    background: white;
+    transition: border-color 0.3s;
+}
+
+.charge-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.charge-input:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.actions-cell {
+    width: 200px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.charge-button,
+.manage-button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.charge-button {
+    background-color: #2196F3;
+    color: white;
+    flex: 1;
+}
+
+.charge-button:hover:not(:disabled) {
+    background-color: #0b7dda;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.charge-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.manage-button {
+    background-color: #FF9800;
+    color: white;
+    flex: 1;
+}
+
+.manage-button:hover {
+    background-color: #e68900;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.manage-button:active {
+    transform: translateY(0);
+}
+
+.message-box {
+    margin-top: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    animation: slideIn 0.3s ease-out;
+}
+
+.message-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.selected-user-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.back-button {
+    padding: 10px 16px;
+    background-color: #666;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.back-button:hover {
+    background-color: #555;
+}
+
+.selected-user-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 16px;
+}
+
+.error-state {
+    padding: 30px 20px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    color: #721c24;
+}
+
+.error-state p {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+}
+
+.retry-button {
+    padding: 10px 16px;
+    background-color: #721c24;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.retry-button:hover {
+    background-color: #5a161a;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .users-table th,
+    .users-table td {
+        padding: 12px 10px;
+        font-size: 13px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .charge-button,
+    .manage-button {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 768px) {
+    .user-management-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .users-table {
+        font-size: 12px;
+    }
+
+    .users-table th,
+    .users-table td {
+        padding: 10px 8px;
+    }
+
+    .charge-input {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+
+    .charge-button,
+    .manage-button {
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+
+    .selected-user-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .selected-user-header h3 {
+        font-size: 16px;
+    }
+}
+

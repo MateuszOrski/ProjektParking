@@ -42,6 +42,17 @@ services:
         condition: service_started
     volumes:
        - ./cars_images:/usr/src/app/cars_images 
+  
+  web:
+    build: ../PDS_WWW_Front
+
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../PDS_WWW_Front:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
 volumes:
   db_data:

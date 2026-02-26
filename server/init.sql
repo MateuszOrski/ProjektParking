@@ -7,13 +7,14 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     first_name VARCHAR(50),
     last_name VARCHAR(50),
-    role ENUM('ADMIN', 'OPERATOR') DEFAULT 'OPERATOR'
+    role ENUM('ADMIN', 'OPERATOR') DEFAULT 'OPERATOR',
+	balance INT DEFAULT 100
 );
 
 
-INSERT INTO users (login, password, first_name, last_name, role) VALUES 
-('admin', 'admin123', 'Jan', 'Kowalski', 'ADMIN'),
-('operator', 'oper123', 'Anna', 'Nowak', 'OPERATOR');
+INSERT INTO users (login, password, first_name, last_name, role, balance) VALUES 
+('admin', 'admin123', 'Jan', 'Kowalski', 'ADMIN', 1000),
+('operator', 'oper123', 'Anna', 'Nowak', 'OPERATOR', 1000);
 
 
 CREATE DATABASE IF NOT EXISTS parking_db;
@@ -34,7 +35,9 @@ CREATE TABLE IF NOT EXISTS parking_sessions (
     exit_time DATETIME,
     payment_token VARCHAR(100),
     payment_status ENUM('UNPAID', 'PAID') DEFAULT 'UNPAID',
-    FOREIGN KEY (spot_id) REFERENCES spots(id)
+	total_cost INT ,
+	user_id INT NOT NULL,
+    FOREIGN KEY (spot_id) REFERENCES spots(id),
 );
 
 INSERT INTO spots (spot_number, floor) VALUES 
@@ -53,23 +56,23 @@ INSERT INTO spots (spot_number, floor) VALUES
 
 
 
-INSERT INTO parking_sessions (spot_id, plate_number, payment_status, entry_time, exit_time) VALUES 
-(1, 'WA 11111', 'PAID', NOW(), NOW()),
-(1, 'WA 22222', 'PAID', NOW(), NOW()),
-(1, 'WA 33333', 'PAID', NOW(), NOW()),
-(1, 'WA 44444', 'PAID', NOW(), NOW()),
-(1, 'WA 55555', 'PAID', NOW(), NOW());
+INSERT INTO parking_sessions (spot_id, plate_number, payment_status, entry_time, exit_time, price, user_id) VALUES 
+(1, 'WA 11111', 'PAID', NOW(), NOW(), 10, 1),
+(1, 'WA 22222', 'PAID', NOW(), NOW(), 20, 1),
+(1, 'WA 33333', 'PAID', NOW(), NOW(), 3, 1),
+(1, 'WA 44444', 'PAID', NOW(), NOW(), 15, 2),
+(1, 'WA 55555', 'PAID', NOW(), NOW(), 15, 2);
 
 
-INSERT INTO parking_sessions (spot_id, plate_number, payment_status, entry_time, exit_time) VALUES 
-(5, 'KR 111', 'PAID', NOW(), NOW()),
-(5, 'KR 222', 'PAID', NOW(), NOW());
+INSERT INTO parking_sessions (spot_id, plate_number, payment_status, entry_time, exit_time, price, user_id) VALUES 
+(5, 'KR 111', 'PAID', NOW(), NOW(), 10, 1),
+(5, 'KR 222', 'PAID', NOW(), NOW(), 30, 2);
 
-INSERT INTO parking_sessions (spot_id, plate_number, payment_status, entry_time, exit_time) VALUES 
-(35, 'PO 999', 'PAID', NOW(), NOW());
+INSERT INTO parking_sessions (spot_id, plate_number, payment_status, entry_time, exit_time, price, user_id) VALUES 
+(35, 'PO 999', 'PAID', NOW(), NOW(), 50, 1);
 
-INSERT INTO parking_sessions (spot_id, plate_number, payment_token, payment_status, entry_time, exit_time) 
-VALUES (3, 'WA LIVE1', 'tkn-1', 'PAID', NOW(), DATE_ADD(NOW(), INTERVAL 2 HOUR));
+INSERT INTO parking_sessions (spot_id, plate_number, payment_token, payment_status, entry_time, exit_time, user_id) 
+VALUES (3, 'WA LIVE1', 'tkn-1', 'PAID', NOW(), DATE_ADD(NOW(), INTERVAL 2 HOUR), 1, 1);
 
-INSERT INTO parking_sessions (spot_id, plate_number, payment_token, payment_status, entry_time, exit_time) 
-VALUES (30, 'GD LIVE2', 'tkn-2', 'PAID', NOW(), DATE_ADD(NOW(), INTERVAL 5 HOUR));
+INSERT INTO parking_sessions (spot_id, plate_number, payment_token, payment_status, entry_time, exit_time, user_id) 
+VALUES (30, 'GD LIVE2', 'tkn-2', 'PAID', NOW(), DATE_ADD(NOW(), INTERVAL 5 HOUR), 2, 2);

@@ -20,7 +20,7 @@ const Baner = ({ title, userName, userRole, balance, onProfileClick }) => {
 
       <div className="baner-right">
         <div className="baner-balance">
-          <span className="baner-balance-label">Saldo konta:</span>
+          <span className="baner-balance-label">Account balance:</span>
           <span className="baner-balance-value">{displayBalance.toFixed(2)} PLN</span>
         </div>
 

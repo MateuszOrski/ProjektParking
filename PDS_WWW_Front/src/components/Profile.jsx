@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./../css/Profile.css";
-import { AiOutlineUser, AiOutlineMail, AiOutlinePhone, AiOutlineIdcard, AiOutlineWallet } from "react-icons/ai";
+import { AiOutlineUser, AiOutlineIdcard, AiOutlineWallet } from "react-icons/ai";
 
 const Profile = ({ userData }) => {
   const [displayData, setDisplayData] = useState(userData);
@@ -11,7 +11,7 @@ const Profile = ({ userData }) => {
   }, [userData]);
 
   if (!displayData) {
-    return <div className="profile-error">Brak danych użytkownika</div>;
+    return <div className="profile-error">No user data</div>;
   }
 
   const profileFields = [
@@ -21,27 +21,27 @@ const Profile = ({ userData }) => {
       icon: AiOutlineIdcard,
     },
     {
-      label: "Nazwa użytkownika",
+      label: "Username",
       value: displayData.login,
       icon: AiOutlineUser,
     },
     {
-      label: "Rola",
+      label: "Role",
       value: displayData.role,
       icon: AiOutlineUser,
     },
     {
-      label: "Imię",
+      label: "First name",
       value: displayData.firstName,
       icon: AiOutlineUser,
     },
     {
-      label: "Nazwisko",
+      label: "Last name",
       value: displayData.lastName,
       icon: AiOutlineUser,
     },
     {
-      label: "Saldo konta",
+      label: "Account balance",
       value: `${displayData.balance?.toFixed(2) || '0.00'} PLN`,
       icon: AiOutlineWallet,
     },

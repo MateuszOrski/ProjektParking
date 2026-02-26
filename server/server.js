@@ -44,8 +44,10 @@ app.get('/api/parking-status', async (req, res) => {
                 ps.plate_number,
                 ps.entry_time AS start_time,
                 ps.exit_time AS end_time,
+                ps.user_id,
+                ps.total_cost,
                 CASE 
-                    WHEN ps.id IS NOT NULL THEN 'OCCUPIED' 
+                    WHEN ps.payment_status = 'UNPAID' THEN 'OCCUPIED' 
                     ELSE 'FREE' 
                 END AS status
             FROM spots s
@@ -71,8 +73,29 @@ app.get('/api/parking-status', async (req, res) => {
     }
 });
 
+app.get('/api/spots/:user_id', async (req, res) => {
+    const { user_id } = req.params;
+
+    try {
+        const sql = `
+            SELECT * FROM parking_sessions 
+            WHERE user_id = ? 
+            AND payment_status = 'UNPAID'
+            ORDER BY entry_time DESC
+        `;
+        const [sessions] = await promiseDb.query(sql, [user_id]);
+        res.json({
+            success: true,
+            sessions: sessions
+        });
+    } catch (err) {
+        console.error('Błąd pobierania miejsc użytkownika:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
+});
+
 app.post('/api/entry', async (req, res) => {
-    const { spot_id, plate_number, duration_hours } = req.body;
+    const { spot_id, plate_number, duration_hours, user_id} = req.body;
     const duration = duration_hours || 1; 
 
     if (!spot_id || !plate_number) {
@@ -93,14 +116,15 @@ app.post('/api/entry', async (req, res) => {
         
         await promiseDb.query(
             `INSERT INTO parking_sessions 
-            (spot_id, plate_number, payment_token, payment_status, entry_time, exit_time) 
-            VALUES (?, ?, ?, 'PAID', NOW(), DATE_ADD(NOW(), INTERVAL ? HOUR))`,
-            [spot_id, plate_number, token, duration]
+            (spot_id, plate_number, payment_token, payment_status, entry_time, exit_time, user_id) 
+            VALUES (?, ?, ?, 'UNPAID', NOW(), DATE_ADD(NOW(), INTERVAL ? HOUR), ?)`,
+            [spot_id, plate_number, token, duration, user_id]
         );
 
         res.json({ 
             success: true, 
-            message: `Wjazd udany. Bilet ważny przez ${duration}h.`
+            message: `Wjazd udany. Bilet ważny przez ${duration}h.`,
+            token: token
         });
 
     } catch (err) {
@@ -108,21 +132,95 @@ app.post('/api/entry', async (req, res) => {
         res.status(500).json({ message: 'Błąd podczas wjazdu' });
     }
 });
+app.get('/api/get-ticket/:token', async (req, res) => {
+    const { token } = req.params;
+
+    try {
+        const sql = 'SELECT * FROM parking_sessions WHERE payment_token = ?';
+        const [tickets] = await promiseDb.query(sql, [token]);
+
+        if (tickets.length === 0) {
+            return res.status(404).json({ success: false, message: 'Nie znaleziono biletu o podanym tokenie' });
+        }
+
+        const ticket = tickets[0];
+        res.json({
+            success: true,
+            ticket: {
+                id: ticket.id,
+                spot_id: ticket.spot_id,
+                plate_number: ticket.plate_number,
+                entry_time: ticket.entry_time,
+                exit_time: ticket.exit_time,
+                total_cost: ticket.total_cost,
+                payment_status: ticket.payment_status
+            }
+        });
+    } catch (err) {
+        console.error('Błąd pobierania biletu:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
+});
+
+
 
 app.post('/api/exit', async (req, res) => {
-    const { spot_id } = req.body;
+    const { spot_id, price, user_id } = req.body;
     try {
+        const balance = await promiseDb.query("SELECT balance FROM auth_db.users WHERE id = ?", [user_id]);
+        if (balance[0][0].balance < price) {
+            return res.status(400).json({ success: false, message: 'Niewystarczające środki na koncie!' });
+        }
         await promiseDb.query(
-            'UPDATE parking_sessions SET exit_time = NOW() WHERE spot_id = ? AND exit_time > NOW()',
-            [spot_id]
+            'UPDATE parking_sessions SET exit_time = NOW(), total_cost = ?, payment_status = "PAID" WHERE spot_id = ?',
+            [price, spot_id]
         );
-        res.json({ success: true, message: 'Wyjazd zarejestrowany (czas skrócony).' });
+        await promiseDb.query(
+            'UPDATE auth_db.users SET balance = balance - ? WHERE id = ?',
+            [price, user_id]
+        );
+        res.json({ success: true, message: 'Wyjazd zarejestrowany.' });
     } catch (err) {
+        console.error(err);
         res.status(500).json({ message: 'Błąd wyjazdu' });
     }
 });
 
-app.get('/api/history/:spot_id', async (req, res) => {
+app.get('/api/history/:user_id', async (req, res) => {
+    const { user_id } = req.params;
+
+    try {
+        const sql = `
+            SELECT s.id AS spot_id,
+                s.spot_number,
+                s.floor,
+                ps.plate_number,
+                ps.entry_time AS start_time,
+                ps.exit_time AS end_time,
+                ps.payment_status,
+                ps.total_cost
+            FROM parking_sessions ps
+            JOIN spots s
+                ON s.id = ps.spot_id
+            WHERE ps.user_id = ?
+            AND ps.payment_status = 'PAID'
+            ORDER BY ps.entry_time DESC;
+        `;
+        
+        const [history] = await promiseDb.query(sql, [user_id]);
+
+        res.json({
+            count: history.length,
+            history: history
+        });
+
+    } catch (err) {
+        console.log
+        res.status(500).json({ message: 'Błąd pobierania historii' });
+    }
+});
+
+app.get('/api/spot-history/:spot_id', async (req, res) => {
     const { spot_id } = req.params;
 
     try {
@@ -145,7 +243,6 @@ app.get('/api/history/:spot_id', async (req, res) => {
         res.status(500).json({ message: 'Błąd pobierania historii' });
     }
 });
-
 app.get('/api/stats', async (req, res) => {
     try {
         const sql = `
@@ -200,7 +297,8 @@ app.post('/login', async (req, res) => {
                     login: user.login,
                     role: user.role, 
                     firstName: user.first_name,
-                    lastName: user.last_name
+                    lastName: user.last_name,
+                    balance: user.balance
                 }
             });
         } else {
@@ -320,4 +418,108 @@ app.get('/api/calculate-price/:hours', (req, res) => {
 
 app.listen(3000, () => {
     console.log('Serwer Parkometru działa na porcie 3000');
+});
+
+app.get('/api/user/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const sql = 'SELECT id, login, role, first_name, last_name, balance FROM auth_db.users WHERE id = ?';
+        const [users] = await promiseDb.query(sql, [id]);
+
+        if (users.length === 0) {
+            return res.status(404).json({ success: false, message: 'Nie znaleziono użytkownika o podanym ID' });
+        }
+
+        const user = users[0];
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                login: user.login,
+                role: user.role,
+                firstName: user.first_name,
+                lastName: user.last_name,
+                balance: user.balance
+            }
+        });
+    } catch (err) {
+        console.error('Błąd pobierania użytkownika:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
+});
+
+app.get('/api/history/:user_id', async (req, res) => {
+    const { user_id } = req.params;
+
+    try {
+        const sql = `
+            SELECT 
+                ps.*, 
+                s.spot_number, 
+                s.floor 
+            FROM parking_sessions ps
+            LEFT JOIN spots s ON ps.spot_id = s.id
+            WHERE ps.user_id = ?
+            ORDER BY ps.entry_time DESC;
+        `;
+        const [sessions] = await promiseDb.query(sql, [user_id]);
+        res.json({
+            success: true,
+            sessions: sessions
+        });
+    } catch (err) {
+        console.error('Błąd pobierania miejsc użytkownika:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
+});
+
+
+app.get('/admin/get-all-users', async (req, res) => {  
+    try {
+        const sql = 'SELECT id, login, role, first_name, last_name, balance FROM auth_db.users';
+        const [users] = await promiseDb.query(sql);
+        res.json({
+            success: true,
+            users: users
+        });
+    } catch (err) {
+        console.error('Błąd pobierania użytkowników:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
+});
+
+app.post('/admin/charge-user', async (req, res) => {
+    const { user_id, amount } = req.body;
+
+    if (!user_id || !amount) {
+        return res.status(400).json({ success: false, message: 'Brak user_id lub amount' });
+    }
+
+    try {
+        await promiseDb.query(
+            'UPDATE auth_db.users SET balance = balance + ? WHERE id = ?',
+            [amount, user_id]
+        );
+        res.json({ success: true, message: `Doładowano konto użytkownika o ${amount} PLN` });
+    } catch (err) {
+        console.error('Błąd doładowania konta użytkownika:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
+});
+
+app.post('/admin/add-user', async (req, res) => {
+    const { login, password, role, first_name, last_name } = req.body;
+    if (!login || !password || !role || !first_name || !last_name) {
+        return res.status(400).json({ success: false, message: 'Brak danych do utworzenia użytkownika' });
+    }
+
+    try {
+        const sql = 'INSERT INTO auth_db.users (login, password, role, first_name, last_name) VALUES (?, ?, ?, ?, ?)';
+        await promiseDb.query(sql, [login, password, role, first_name, last_name]);
+        res.json({ success: true, message: 'Użytkownik dodany pomyślnie' });
+    } catch (err) {
+        console.error('Błąd dodawania użytkownika:', err);
+        res.status(500).json({ success: false, message: 'Błąd serwera' });
+    }
 });
